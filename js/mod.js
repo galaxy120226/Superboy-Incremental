@@ -1,18 +1,21 @@
 let modInfo = {
-	name: "The ??? Table",
-	nameI18N: "The ??? Table",// When you enabled the internationalizationMod, this is the name in the second language
-	id: "mymod2",
-	author: "nobody",
-	pointsName: "points",
-	modFiles: ["layers.js", "tree.js"],
+	name: "果报增量 - Retribution Incremental",
+	nameI18N: "Retribution Incremental",// When you enabled the internationalizationMod, this is the name in the second language
+	id: "retribution-incremental",
+	author: "RBNR_326649",
+	pointsName: "Energy",
+	modFiles: ["layers/layerCounter.js", 
+			   "layers/g.js", 
+			   "layers/retri.js", 
+			   "tree.js"],
 
-	internationalizationMod: false,
+	internationalizationMod: true,
 	// When enabled, it will ask the player to choose a language at the beginning of the game
 	changedDefaultLanguage: false,
 	// Changes the mod default language. false -> English, true -> Chinese
 
-	initialStartPoints: new Decimal (10), // Used for hard resets and new players
-	offlineLimit: 1,  // In hours
+	initialStartPoints: new Decimal (0), // Used for hard resets and new players
+	offlineLimit: 8760,  // In hours
 }
 
 var colors = {
@@ -46,21 +49,7 @@ let VERSION = {
 }
 
 function changelog(){
-	return i18n(`
-		<br><br><br><h1>更新日志:</h1><br>(不存在<span style='color: red'><s>剧透警告</s></span>)<br><br>
-		<span style="font-size: 17px;">
-			<h3><s>你应该自己写这个</s></h3><br><br>
-			<h3>v3.0 - 史无前例的改动</h3><br>
-				- 开发了 The Modding Table, 这何尝不是一种TMT<br>
-			<br><br>
-		`, `
-		<br><br><br><h1>ChangeLog:</h1><br>(No<span style='color: red'><s> Spoiler Warning!</s></span>)<br><br>
-		<span style="font-size: 17px;">
-			<h3><s>YOU SHOULD WRITE THIS YOURSELF</s></h3><br><br>
-			<h3>v3.0 - Unprecedented changes</h3><br>
-				- Developed The Modding Table, Which, you could say, is another form of TMT<br>
-			<br><br>
-	`, false)
+	return ""
 } 
 
 function winText(){
@@ -82,15 +71,15 @@ function canGenPoints(){
 
 // Calculate points/sec!
 function getPointGen() {
-	if(!canGenPoints())
-		return new Decimal(0)
-
-	let gain = new Decimal(1)
+	let gain = new Decimal(2).pow(player.g.points);
+    if(hasUpgrade("g",13)) gain = gain.tetrate(player.g.meta);
+	gain = gain.min(new Decimal(10).tetrate(1e100))
 	return gain
 }
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addedPlayerData() { return {
+	retributions: 0
 }}
 
 // Display extra information at the top of the page
@@ -103,7 +92,7 @@ var displayThings = [
 
 // You can write code here to easily display information in the top-left corner
 function displayThingsRes(){
-	return 'Points: '+format(player.points)+' | '
+	return ""
 }
 
 // Determines when the game "ends"
@@ -121,7 +110,7 @@ function getPointsDisplay(){
 	}
 	a += '<br>'
 	if(!(options.ch==undefined && modInfo.internationalizationMod==true)){
-		a += `<span class="overlayThing">${(i18n("你有", "You have", false))} <h2 class="overlayThing" id="points"> ${format(player.points)}</h2> ${i18n(modInfo.pointsName, modInfo.pointsNameI18N)}</span>`
+		a += `<span class="overlayThing">${(i18n("你有", "You have", false))} <h2 class="overlayThing" id="points"> ${deduceDisplay()}</h2> ${i18n(modInfo.pointsName, modInfo.pointsNameI18N)}</span>`
 		if(canGenPoints()){
 			a += `<br><span class="overlayThing">(`+(tmp.other.oompsMag != 0 ? format(tmp.other.oomps) + " OoM" + (tmp.other.oompsMag < 0 ? "^OoM" : tmp.other.oompsMag > 1 ? "^" + tmp.other.oompsMag : "") + "s" : formatSmall(getPointGen()))+`/sec)</span>`
 		}
